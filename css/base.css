@@ -1,0 +1,362 @@
+/* ═══════════════════════════════════════════════════════════════════════════════════════════════
+   base.css — Estándar de páginas de José, «Claro institucional», versión 2.1 (2026-11-05, D-55).
+   v2.1: la letra es Public Sans (OFL), guardada en el sitio: los archivos van en ../letras/public-sans/ junto a esta hoja.
+   v2: suma lo que D-55 conserva de reconstruccion-sedes (estados de la campaña, ruta, etapas, mapa 3D, tabla densa,
+   ítems de presupuesto, bandeja, línea de tiempo, diálogo, vacío y error). v1 (2026-11-03) en _RESPALDOS\paginas-jose_v1_*.
+   Fuente única del aspecto. Se copia tal cual a cada proyecto (app/css/base.css) y no se edita allí:
+   lo propio de cada pantalla va en otro archivo que se carga después.
+   Origen: claro.css de reconstruccion-sedes (D-52), revisado con frontend-design, ui-ux-pro-max,
+   web-design-guidelines, accessibility y dataviz. Explicación de cada regla: SKILL.md.
+   Sin dependencias ni CDN. La letra se sirve desde el propio sitio; nunca de Google Fonts.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* Letra: Public Sans v2.001 (uswds/public-sans, OFL), pesos 400, 600 y 700. Ruta relativa a esta hoja: el proyecto copia
+   letras/ de la skill a app/letras/ (base.css queda en app/css/). Un archivo único (muestra) cambia estas url() por data URI. */
+@font-face{font-family:"Public Sans";font-style:normal;font-weight:400;font-display:swap;src:url("../letras/public-sans/PublicSans-Regular.woff2") format("woff2")}
+@font-face{font-family:"Public Sans";font-style:normal;font-weight:600;font-display:swap;src:url("../letras/public-sans/PublicSans-SemiBold.woff2") format("woff2")}
+@font-face{font-family:"Public Sans";font-style:normal;font-weight:700;font-display:swap;src:url("../letras/public-sans/PublicSans-Bold.woff2") format("woff2")}
+
+:root{
+  /* Superficies y texto (contraste medido sobre --fondo) */
+  --fondo:#F7F9FB; --sup:#FFFFFF; --sup2:#F3F6F9;
+  --t1:#0F172A;  /* 16,9:1 */
+  --t2:#334155;  /* 9,8:1  */
+  --t3:#5B6779;  /* 5,4:1  */
+  --linea:#EDF1F5; --contorno:#E2E8F0; --campo:#7B8799; /* borde de campo 3,6:1 */
+  /* Marca, del membrete de la Secretaría */
+  --v7:#0A7D45; --v8:#0B4F2E; --v1:#D7EDE1; --v0:#EBF6F0;
+  --oro:#D8AE23; --oro0:#FCF6E3; --oro-osc:#735A00; /* oro-osc sobre oro0: 6,1:1 */
+  /* Estados de avance: punto (validado con dataviz), texto y fondo de la etiqueta.
+     Regla: un color por estado, igual en todo; el verde solo para lo terminado. */
+  --sin-bg:#FFF0F2; --sin-tx:#9F1239; --sin-pt:#E58FA0;
+  --bor-bg:#FCF6E3; --bor-tx:#735A00; --bor-pt:#D8AE23;
+  --env-bg:#EAF1FB; --env-tx:#1E4E8C; --env-pt:#2F6FB7;
+  --dev-bg:#FDECEA; --dev-tx:#9B1C14; --dev-pt:#B42318;
+  --ok-bg:#EBF6F0;  --ok-tx:#0B4F2E;  --ok-pt:#0A7D45;
+  /* Cambios de una cifra: baja y sube (par validado con dataviz) */
+  --baja:#B42318; --sube:#13866A;
+  /* Rampa secuencial de un solo tono, para mapas y magnitudes (claro → oscuro) */
+  --r1:#E4F2E9; --r2:#B4DCC2; --r3:#76BD95; --r4:#2F9363; --r5:#0B5E35;
+  /* Tipografía: Public Sans en los tres papeles (títulos y cifras, cuerpo, notas). Se conservan las tres variables para que
+     las hojas propias de cada proyecto no cambien; si la letra no carga, la del sistema */
+  --f-display:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-texto:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --f-peq:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  /* Escala clásica (The Elements of Typographic Style) */
+  --t-12:12px; --t-14:14px; --t-16:16px; --t-18:18px; --t-21:21px; --t-24:24px; --t-36:36px; --t-48:48px;
+  /* Tres radios, por jerarquía: panel, control y etiqueta */
+  --r-panel:16px; --r-ctl:10px; --r-pill:999px;
+  /* Una sombra para lo que es panel y otra para lo que responde al mouse o flota */
+  --sombra-1:0 0 0 1px rgba(15,23,42,.04),0 1px 2px rgba(15,23,42,.04),0 6px 20px -6px rgba(15,23,42,.08);
+  --sombra-2:0 0 0 1px rgba(15,23,42,.05),0 2px 4px rgba(15,23,42,.04),0 22px 44px -16px rgba(15,23,42,.16);
+  --curva:cubic-bezier(.2,.7,.2,1);
+  /* Estados de la campaña de confirmación (D-52, valores de producción): fondo, texto y punto; tono de relleno para el mapa */
+  --c-sin-bg:#FFF0F2; --c-sin-tx:#9F1239; --c-sin-pt:#EC7A93;
+  --c-res-bg:#FFF6E5; --c-res-tx:#8A4B07; --c-res-pt:#F59E0B;
+  --c-pdf-bg:#E9F7F5; --c-pdf-tx:#115E59; --c-pdf-pt:#14B8A6;
+  --c-car-bg:#EBF6F0; --c-car-tx:#0B4F2E; --c-car-pt:#0A7D45;
+  --c-des-bg:#FFF1EA; --c-des-tx:#9A3412; --c-des-pt:#EA580C;
+  /* Título de las pantallas de trabajo (tablas y formularios): en la escala; la alternativa evaluada es 28 px */
+  --t-densa:24px;
+  color-scheme:light;
+}
+
+/* ── Base ── */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--fondo);color:var(--t1);font:400 var(--t-16)/1.5 var(--f-texto);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit}
+button,a,input,select,label{touch-action:manipulation}
+button{cursor:pointer}
+h1,h2,h3{text-wrap:balance;margin:0}
+p{margin:0}
+.n{font-variant-numeric:tabular-nums lining-nums}
+.peq{font-family:var(--f-peq)}
+:focus-visible{outline:2px solid var(--v7);outline-offset:2px;border-radius:6px}
+.oculto{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.saltar{position:absolute;left:12px;top:-60px;z-index:50;background:var(--v8);color:#fff;padding:10px 16px;border-radius:var(--r-ctl);text-decoration:none}
+.saltar:focus{top:12px}
+.ico{width:16px;height:16px;flex:none}
+.baja{color:var(--baja)} .sube{color:var(--sube)}
+
+/* ── Armazón: riel del administrador (con el membrete) y cabecera simple del usuario externo ── */
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.riel{background:var(--sup);box-shadow:1px 0 0 var(--linea);padding:20px 14px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;overflow:auto}
+.riel .membrete,.membrete{display:block;min-height:0;padding:4px 8px 16px;margin-bottom:8px;border-radius:0;border-bottom:1px solid var(--linea)}
+.riel .membrete:hover{background:none}
+.membrete img{display:block;width:188px;max-width:100%;height:auto}
+.membrete span{display:block;margin-top:12px;font-size:var(--t-14);font-weight:600;color:var(--v8)}
+.riel a,.riel .nd{display:flex;gap:10px;align-items:center;min-height:44px;padding:8px 12px;border-radius:var(--r-ctl);color:var(--t2);text-decoration:none;font-size:15px}
+.riel a svg{color:var(--t3)}
+.riel a[aria-current="page"]{background:var(--v0);color:var(--v8);font-weight:600}
+.riel a[aria-current="page"] svg{color:var(--v7)}
+.riel a:hover:not([aria-current]){background:var(--sup2)}
+.riel .nd{color:var(--t3)}
+.riel .pie{margin-top:auto;font-family:var(--f-peq);font-size:13px;color:var(--t3);padding:12px}
+.cabrec{display:none;align-items:center;gap:16px;flex-wrap:wrap;padding:12px clamp(16px,3vw,40px);background:var(--sup);box-shadow:0 1px 0 var(--linea)}
+.cabrec img{display:block;height:40px;width:auto}
+.cabrec .quien{margin-left:auto;font-size:var(--t-14);color:var(--t2)}
+.shell.sin-riel{grid-template-columns:minmax(0,1fr)}.shell.sin-riel .riel{display:none}.shell.sin-riel .cabrec{display:flex}
+.col{min-width:0;display:flex;flex-direction:column}
+main{padding:32px clamp(16px,3vw,40px) 64px;max-width:1240px;width:100%;min-width:0;margin:0 auto}
+main:focus{outline:none}
+
+/* ── Encabezado de pantalla: el título dice qué es; la bajada, sobre qué conjunto ── */
+.cab{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+.cab h1{font:600 var(--t-36)/1.1 var(--f-display);letter-spacing:-.02em}
+.cab p{margin-top:8px;color:var(--t3);max-width:68ch}
+.cab .der{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.migas{font-size:var(--t-14);color:var(--t3);margin-bottom:8px}
+.migas a{color:var(--v7)}
+
+/* ── Panel: el único contenedor con sombra. Dentro de un panel no hay tarjetas, hay filas ── */
+.panel{background:var(--sup);border-radius:var(--r-panel);box-shadow:var(--sombra-1);padding:20px;min-width:0}
+.panel > h2,.panel .h2{font:600 var(--t-18)/1.3 var(--f-display);margin-bottom:4px}
+.panel .sub{font-size:var(--t-14);color:var(--t3);margin-bottom:16px}
+.rejilla{display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr))}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+
+/* ── Tira de cifras: un panel, varias cifras separadas por reglas. Cada cifra dice su conjunto y lleva a su acción ── */
+.cifras{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));padding:0;overflow:hidden}
+.cifras > div{padding:18px 20px;border-left:1px solid var(--linea);display:flex;flex-direction:column;gap:2px}
+.cifras > div:first-child{border-left:0}
+.cifras .et{font-size:var(--t-14);color:var(--t2)}
+.cifras b{font:600 var(--t-36)/1.1 var(--f-display);letter-spacing:-.02em;font-variant-numeric:tabular-nums lining-nums}
+.cifras .de{font-family:var(--f-peq);font-size:13px;color:var(--t3)}
+.cifras a{display:inline-flex;align-items:center;align-self:flex-start;min-height:44px;margin-top:2px;font-size:var(--t-14);font-weight:600;color:var(--v7);text-underline-offset:3px}
+.cifras .baja{color:var(--baja)} .cifras .sube{color:var(--sube)}
+.cifras .plazo{background:var(--oro0)}
+.cifras .plazo .et,.cifras .plazo .de{color:var(--oro-osc)}
+
+/* ── Botones ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:1px solid var(--contorno);background:var(--sup);color:var(--t1);border-radius:var(--r-ctl);padding:9px 16px;font-weight:600;font-size:15px;text-decoration:none;
+  transition:transform 120ms var(--curva),box-shadow 200ms var(--curva),background-color 200ms var(--curva)}
+.btn:hover{box-shadow:var(--sombra-1)} .btn:active{transform:scale(.97)}
+.btn.pri{background:var(--v7);border-color:var(--v7);color:#fff} .btn.pri:hover{background:var(--v8)}
+.btn.sutil{border-color:transparent;background:transparent;color:var(--v7)} .btn.sutil:hover{background:var(--v0);box-shadow:none}
+.btn.grande{padding:12px 20px;font-size:var(--t-16)}
+
+/* ── Estados: etiqueta con punto. Lo que no es avance (rol, sí/no) va en .e-neutro, sin color de estado ── */
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:var(--r-pill);padding:3px 10px 3px 8px;font-family:var(--f-peq);font-size:13px;font-weight:600;white-space:nowrap}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pt,currentColor)}
+.e-sin{background:var(--sin-bg);color:var(--sin-tx);--pt:var(--sin-pt)} .e-bor{background:var(--bor-bg);color:var(--bor-tx);--pt:var(--bor-pt)}
+.e-env{background:var(--env-bg);color:var(--env-tx);--pt:var(--env-pt)} .e-dev{background:var(--dev-bg);color:var(--dev-tx);--pt:var(--dev-pt)}
+.e-ok{background:var(--ok-bg);color:var(--ok-tx);--pt:var(--ok-pt)}
+.e-neutro{background:var(--sup2);color:var(--t2)} .e-neutro::before{display:none}
+
+/* ── Ficha: el objeto sobre el que el usuario actúa (una sede). Es un enlace; la franja lleva el color de su estado ── */
+.fichas{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));align-items:start}
+.ficha{position:relative;display:flex;flex-direction:column;gap:2px;color:inherit;text-decoration:none;background:var(--sup);border-radius:var(--r-panel);box-shadow:var(--sombra-1);padding:16px 16px 16px 20px;transition:box-shadow 200ms var(--curva)}
+.ficha::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:var(--pt,var(--contorno))}
+.ficha:hover{box-shadow:var(--sombra-2)}
+.ficha .chip{align-self:flex-start}
+.ficha h3{margin-top:8px;font:600 var(--t-16)/1.35 var(--f-texto)}
+.ficha .dane{font-family:var(--f-peq);font-size:13px;color:var(--t3)}
+.ficha .ir{margin-top:12px;font-weight:600;color:var(--v7)}
+
+/* ── Anillo de N segmentos: uno por elemento, se cuenta, no se estima (SVG, ver SKILL.md) ── */
+.anillo{position:relative;width:120px;height:120px;flex:none}
+.anillo svg{display:block;width:100%;height:100%}
+.anillo .centro{position:absolute;inset:0;display:grid;place-content:center;text-align:center;line-height:1.1}
+.anillo .centro b{font:600 30px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.anillo .centro small{font-family:var(--f-peq);font-size:12px;color:var(--t3)}
+
+/* ── Listas y tablas ── */
+.lista{list-style:none;margin:0;padding:0}
+.lista > li{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--linea);font-size:15px}
+.lista > li:last-child{border-bottom:0}
+.lista small{display:block;font-family:var(--f-peq);color:var(--t3);font-size:13px}
+.lista .der{margin-left:auto;text-align:right;display:flex;gap:8px;align-items:center}
+.tabla{width:100%;border-collapse:collapse;font-size:15px}
+.tabla th{text-align:left;font-size:var(--t-14);color:var(--t3);font-weight:600;padding:10px;border-bottom:1px solid var(--contorno)}
+.tabla td{padding:12px 10px;border-bottom:1px solid var(--linea);vertical-align:top}
+.tabla .d{text-align:right}
+.tabla-scroll{overflow-x:auto}
+
+/* ── Formularios: error junto al campo, enlazado con aria-describedby ── */
+.campo{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.campo label,.campo .lbl{font-size:var(--t-14);font-weight:600;color:var(--t2)}
+select,textarea,input[type=text],input[type=email]{border:1px solid var(--campo);border-radius:var(--r-ctl);padding:9px 12px;background:var(--sup);color:var(--t1);min-height:44px}
+.ayuda{font-family:var(--f-peq);font-size:13px;color:var(--t3);margin-top:4px}
+.ayuda.mal,.error{color:var(--baja);font-weight:600}
+.mal input,.mal select,.mal textarea,textarea.mal{border-color:var(--baja);box-shadow:0 0 0 1px var(--baja)}
+.seg{display:inline-flex;background:var(--sup2);border-radius:12px;padding:3px}
+.seg button{border:0;background:transparent;min-height:40px;padding:6px 20px;border-radius:9px;font-weight:600;color:var(--t2)}
+.seg button[aria-pressed="true"]{background:var(--sup);color:var(--v8);box-shadow:var(--sombra-1)}
+.contador{display:flex;align-items:center;justify-content:center;gap:4px}
+.contador button{width:44px;height:44px;border-radius:var(--r-ctl);border:1px solid var(--contorno);background:var(--sup);color:var(--t2);font-size:20px;line-height:1}
+.contador button:hover{background:var(--sup2)}
+.contador input{width:56px;height:44px;text-align:center;border:1px solid var(--campo);border-radius:var(--r-ctl);padding:4px 2px;font:600 17px var(--f-texto);font-variant-numeric:tabular-nums;background:var(--sup);color:var(--t1)}
+.cambio{background:var(--oro0)}
+.pasos{display:flex;gap:6px;margin:0 0 20px;padding:0;list-style:none;flex-wrap:wrap}
+.pasos li{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:var(--r-pill);background:var(--sup);box-shadow:var(--sombra-1);font-size:var(--t-14);color:var(--t3)}
+.pasos li i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--sup2);font-style:normal;font-weight:700;font-size:12px}
+.pasos li.act{color:var(--t1);font-weight:600} .pasos li.act i{background:var(--v7);color:#fff}
+.pasos li.hecho i{background:var(--v1);color:var(--v8)}
+
+/* ── Notas y avisos ── */
+.cita{border-left:3px solid var(--oro);background:var(--oro0);padding:10px 14px;border-radius:0 var(--r-ctl) var(--r-ctl) 0;font-size:15px}
+.aviso{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--t1);color:#fff;padding:12px 18px;border-radius:12px;max-width:calc(100% - 32px);
+  box-shadow:var(--sombra-2);font-size:15px;transition:opacity 320ms var(--curva),transform 320ms var(--curva);z-index:30;pointer-events:none}
+.aviso.on{opacity:1;transform:translate(-50%,0)}
+
+/* ── Mapa de Caldas: el color lleva un porcentaje (rampa de un tono); la cantidad, si se muestra, va en número ── */
+.mapa svg{display:block;width:100%;height:auto}
+.mapa path{stroke:#fff;stroke-width:1.2;stroke-linejoin:round;transition:opacity 150ms}
+.mapa path.fuera{fill:var(--sup2)}
+.mapa g:hover path{opacity:.85}
+.mapa text{font:600 11px var(--f-peq);fill:var(--t1);paint-order:stroke;stroke:#fff;stroke-width:3px;pointer-events:none}
+.rampa{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--f-peq);font-size:13px;color:var(--t2);margin-top:8px}
+.rampa i{display:inline-block;width:28px;height:10px;border-radius:2px}
+
+/* ── v2 (2026-11-05, D-55): lo que se conserva de reconstruccion-sedes ─────────────────────────────────────────────── */
+
+/* Estados de la campaña de confirmación (D-52): otro flujo, otros estados; misma regla: un color por estado, con su palabra */
+.c-sin{background:var(--c-sin-bg);color:var(--c-sin-tx);--pt:var(--c-sin-pt)} .c-res{background:var(--c-res-bg);color:var(--c-res-tx);--pt:var(--c-res-pt)}
+.c-pdf{background:var(--c-pdf-bg);color:var(--c-pdf-tx);--pt:var(--c-pdf-pt)} .c-car{background:var(--c-car-bg);color:var(--c-car-tx);--pt:var(--c-car-pt)}
+.c-des{background:var(--c-des-bg);color:var(--c-des-tx);--pt:var(--c-des-pt)}
+
+/* Pantallas de trabajo: el título no compite con la tabla o el formulario */
+.cab.densa{margin-bottom:16px}
+.cab.densa h1{font-size:var(--t-densa)}
+
+/* Selector «Contar sobre»: dice sobre qué conjunto se cuentan las cifras de la pantalla (D-46) */
+.conjunto{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:100%;font-size:var(--t-14);color:var(--t2)}
+.conjunto select{max-width:100%;min-width:0}
+
+/* Tabla densa: encabezado fijo, filas de 40 px, cifras a la derecha, desplazamiento propio */
+.tabla-scroll.alto{max-height:min(70vh,640px);overflow:auto;border-radius:var(--r-ctl)}
+.tabla.densa{font-size:var(--t-14)}
+.tabla.densa th{position:sticky;top:0;z-index:1;background:var(--sup);padding:8px 10px}
+.tabla.densa td{padding:8px 10px;height:40px;vertical-align:middle}
+.tabla.densa tbody tr:hover{background:var(--sup2)}
+.tabla.densa td.d,.tabla.densa th.d{text-align:right;font-variant-numeric:tabular-nums lining-nums}
+.tabla.densa .sec{display:block;font-family:var(--f-peq);font-size:var(--t-12);color:var(--t3)}
+.tabla.densa a{color:var(--t1);font-weight:600;text-decoration:none}
+.tabla.densa a:hover{text-decoration:underline;text-underline-offset:3px}
+
+/* Ruta: pasos de un proceso con lo que hay en cada uno (la ruta de 4 pasos de la certificación, D-52) */
+.ruta{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(var(--pasos,4),minmax(0,1fr));gap:16px}
+.ruta > li{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ruta .bola{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font:600 var(--t-16)/1 var(--f-display);
+  background:var(--sup);color:var(--t1);box-shadow:inset 0 0 0 2px var(--pt,var(--contorno));font-variant-numeric:tabular-nums}
+.ruta > li.fin .bola{background:var(--pt);color:#fff;box-shadow:none}
+.ruta > li:not(:last-child)::after{content:"";position:absolute;top:20px;left:52px;right:-4px;height:2px;background:var(--linea)}
+.ruta h3{font:600 var(--t-16)/1.3 var(--f-texto);margin-top:4px}
+.ruta .sub{font-family:var(--f-peq);font-size:13px;color:var(--t3)}
+.ruta .en{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+
+/* Etapas: los pasos de un trámite como tarjetas, la activa resaltada (pantalla del alcalde, D-53). Excepción a «sin tarjetas
+   dentro de un panel»: cada tarjeta es un paso con su acción */
+.etapas{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.etapas > li{display:flex;gap:12px;padding:16px;border-radius:var(--r-ctl);background:var(--sup2);min-width:0}
+.etapas .num{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--sup);
+  box-shadow:inset 0 0 0 1.5px var(--contorno);font-weight:700;font-size:var(--t-14);color:var(--t3)}
+.etapas .tx{min-width:0}
+.etapas h3{font:600 var(--t-16)/1.3 var(--f-texto);color:var(--t3)}
+.etapas p{margin-top:4px;font-size:var(--t-14);color:var(--t2)}
+.etapas .btn{margin-top:10px;white-space:normal;text-align:left}
+.etapas > li.act{background:var(--act-bg,var(--c-res-bg));box-shadow:inset 0 0 0 1.5px var(--act-pt,var(--c-res-pt))}
+.etapas > li.act .num{background:var(--act-tx,var(--c-res-tx));color:#fff;box-shadow:none}
+.etapas > li.act h3,.etapas > li.hecho h3{color:var(--t1)}
+.etapas > li.hecho{background:var(--v0)}
+.etapas > li.hecho .num{background:var(--v7);color:#fff;box-shadow:none}
+
+/* Mapa 3D (D-54): ocupa el panel; título, controles y leyenda flotan encima. Sin WebGL cae al mapa plano (.mapa) */
+.mapa3d{position:relative;height:clamp(420px,72vh,720px);border-radius:var(--r-panel);overflow:hidden;background:var(--sup2)}
+.mapa3d canvas,.mapa3d > svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.mapa3d .flota{position:absolute;z-index:2;background:rgba(255,255,255,.94);border-radius:var(--r-ctl);box-shadow:var(--sombra-1);padding:10px 12px}
+.mapa3d .flota.titulo{top:16px;left:16px;max-width:min(440px,calc(100% - 32px))}
+.mapa3d .flota.controles{top:16px;right:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 32px)}
+.mapa3d .flota.leyenda{bottom:16px;left:16px;display:flex;gap:4px 12px;flex-wrap:wrap;max-width:calc(100% - 32px);font-size:13px}
+.mapa3d .flota h2{font:600 var(--t-18)/1.3 var(--f-display)}
+.mapa3d .flota p{font-size:13px;color:var(--t3);margin-top:2px}
+.leyenda button{border:0;background:none;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 8px;border-radius:var(--r-pill);color:var(--t2);font-size:13px}
+.leyenda button::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--pt)}
+.leyenda button[aria-pressed="true"]{background:var(--sup2);color:var(--t1);font-weight:600}
+
+/* Ítems de presupuesto (D-29, D-33): capítulo, trabajo, unidad, cantidad, valor unitario y total calculado */
+.items{display:grid;gap:8px}
+.items .fila{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,3fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.2fr) 44px;gap:8px;align-items:center}
+.items .fila.enc{font-size:13px;font-weight:600;color:var(--t3)}
+.items select,.items input{width:100%;min-width:0}
+.items input.n{text-align:right}
+.items .total{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.items .quitar{width:44px;height:44px;border:0;border-radius:var(--r-ctl);background:none;color:var(--t3);font-size:20px}
+.items .quitar:hover{background:var(--dev-bg);color:var(--dev-tx)}
+.resumen-valores{display:grid;grid-template-columns:auto auto;justify-content:end;gap:6px 24px;margin-top:12px;font-variant-numeric:tabular-nums}
+.resumen-valores dt{color:var(--t2)} .resumen-valores dd{margin:0;text-align:right;font-weight:600}
+.resumen-valores .gran{font:600 var(--t-21)/1.2 var(--f-display);color:var(--t1)}
+
+/* Bandeja de trabajo (verificación): cada fila con su espera. ≤ 5 días neutro, 6 a 10 oro, > 10 rojo; el verde no se usa
+   porque no es «terminado» */
+.bandeja{list-style:none;margin:0;padding:0}
+.bandeja > li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--linea)}
+.bandeja > li:last-child{border-bottom:0}
+.bandeja .que{min-width:0} .bandeja .que b{display:block} .bandeja .que small{font-family:var(--f-peq);font-size:13px;color:var(--t3)}
+.espera{font-family:var(--f-peq);font-size:13px;font-weight:600;border-radius:var(--r-pill);padding:3px 10px;white-space:nowrap}
+.espera.e1{background:var(--sup2);color:var(--t2)} .espera.e2{background:var(--bor-bg);color:var(--bor-tx)} .espera.e3{background:var(--dev-bg);color:var(--dev-tx)}
+
+/* Línea de tiempo: versiones y movimientos de una sede; nada se sobrescribe (D-37) */
+.linea-tiempo{list-style:none;margin:0;padding:0 0 0 20px;position:relative}
+.linea-tiempo::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--linea)}
+.linea-tiempo > li{position:relative;padding:0 0 16px}
+.linea-tiempo > li::before{content:"";position:absolute;left:-20px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--sup);box-shadow:inset 0 0 0 2px var(--pt,var(--campo))}
+.linea-tiempo time{display:block;font-family:var(--f-peq);font-size:13px;color:var(--t3)}
+
+/* Diálogo de confirmación (reemplaza a confirm() del navegador) */
+dialog.dialogo{border:0;border-radius:var(--r-panel);box-shadow:var(--sombra-2);padding:24px;max-width:min(480px,calc(100% - 32px));color:var(--t1)}
+dialog.dialogo::backdrop{background:rgba(15,23,42,.35)}
+dialog.dialogo h2{font:600 var(--t-21)/1.25 var(--f-display);margin-bottom:8px}
+dialog.dialogo .acciones{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:20px}
+.btn.peligro{background:var(--dev-pt);border-color:var(--dev-pt);color:#fff}
+
+/* Estado vacío y de error dentro de un panel: dice qué pasa y qué hacer */
+.vacio{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px 4px;color:var(--t2)}
+.vacio b{color:var(--t1);font-size:var(--t-16)}
+.vacio.error b{color:var(--dev-tx)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:980px){
+  .shell{grid-template-columns:minmax(0,1fr)}.riel{display:none}.shell .cabrec{display:flex}
+  .c4,.c5,.c7,.c8{grid-column:span 12}
+}
+@media (max-width:720px){
+  .seg button,.leyenda button{min-height:44px}
+  .ruta{grid-template-columns:minmax(0,1fr)}
+  .ruta > li:not(:last-child)::after{display:none}
+  .etapas{grid-template-columns:minmax(0,1fr)}
+  .items .fila.enc{display:none}
+  .items .fila{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 44px;padding:12px;border:1px solid var(--linea);border-radius:var(--r-ctl)}
+  .items .fila > :nth-child(1){grid-column:1 / 3;grid-row:1}
+  .items .fila > :nth-child(7){grid-column:3;grid-row:1}
+  .items .fila > :nth-child(2){grid-column:1 / -1;grid-row:2}
+  .items .fila > :nth-child(3){grid-column:1;grid-row:3}
+  .items .fila > :nth-child(4){grid-column:2 / -1;grid-row:3}
+  .items .fila > :nth-child(5){grid-column:1;grid-row:4}
+  .items .fila > :nth-child(6){grid-column:2 / -1;grid-row:4}
+  .tabla-scroll .tabla.densa{min-width:640px}
+  .mapa3d{height:600px;display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;gap:8px;padding:12px}
+  .mapa3d .flota.titulo,.mapa3d .flota.controles,.mapa3d .flota.leyenda{position:relative;inset:auto;max-width:none}
+  .mapa3d .flota.titulo{grid-row:1}
+  .mapa3d .flota.controles{grid-row:3;justify-self:end}
+  .mapa3d .flota.leyenda{grid-row:4;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 4px}
+  .leyenda button{justify-content:flex-start;text-align:left}
+  .bandeja > li{grid-template-columns:minmax(0,1fr)}
+  .cab h1{font-size:var(--t-24)}
+  .cifras{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .cifras > div{border-left:0;border-top:1px solid var(--linea)}
+  .cifras > div:nth-child(-n+2){border-top:0}
+  .cifras > div:nth-child(even){border-left:1px solid var(--linea)}
+  .cifras b{font-size:28px}
+  .tabla.bloques thead{display:none}
+  .tabla.bloques tr{display:block;padding:12px 0;border-bottom:1px solid var(--linea)}
+  .tabla.bloques td{display:block;border:0;padding:3px 0}
+  .tabla.bloques td.d{text-align:left}
+  .tabla.bloques td[data-t]::before{content:attr(data-t) ": ";color:var(--t3)}
+}
+@media (max-width:560px){
+  main{padding:20px 16px 48px}
+  .panel{padding:16px 14px}
+  .cifras > div{padding:14px}
+}
