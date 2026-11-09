@@ -283,7 +283,7 @@
     av.textContent = iniciales(revisor ? S.usuario && S.usuario.nombre : nom); av.classList.toggle('azul', revisor);
     yo.title = nom + ', ' + rol;
   }
-  $('salir').addEventListener('click', () => cerrarSesion());
+  $('salir').addEventListener('click', () => { if (formularioPendiente() && !F.guardando) dialogoSalir(() => cerrarSesion()); else if (!formularioPendiente()) cerrarSesion(); });
 
   /* ── Rutas ── */
   function parsear() {
@@ -540,6 +540,18 @@
   }
 
   /* ── Registrar o corregir: actividad, fecha y participantes, luego las fotos (la evidencia principal), luego el texto ── */
+  // Salir del formulario con algo escrito o fotos elegidas: se pregunta antes, con un diálogo (no confirm()).
+  function dialogoSalir(despues) {
+    const dl = document.createElement('dialog'); dl.className = 'dialogo';
+    dl.innerHTML = `<h2>¿Salir sin guardar?</h2><p>Lo que escribió y las fotos que eligió en este registro se pierden si sale ahora.</p>
+      <div class="acciones"><button type="button" class="btn" id="sg-no">Seguir llenando</button><button type="button" class="btn peligro" id="sg-si">Salir sin guardar</button></div>`;
+    document.body.appendChild(dl); dl.showModal(); dl.addEventListener('close', () => dl.remove());
+    $('sg-no').addEventListener('click', () => dl.close());
+    $('sg-si').addEventListener('click', () => { F.sucio = false; F.nuevos = []; dl.close(); if (despues) despues(); else location.hash = '#inicio'; });
+  }
+  const formularioPendiente = () => /^#registrar/.test(location.hash) && F && (F.guardando || F.sucio || F.nuevos.length);
+  // Cerrar o recargar la pestaña con un registro a medias (o mientras sube las fotos): el navegador pregunta.
+  window.addEventListener('beforeunload', ev => { if (formularioPendiente()) { ev.preventDefault(); ev.returnValue = ''; } });
   function bloqueAyuda(a) {
     return a ? `<div class="bloque"><b>De qué se trata</b>${esc(a.que)}</div><div class="bloque"><b>Evidencia sugerida</b>${esc(a.pista)}</div><div class="bloque"><b>Cuidado</b>${esc(a.cuidado)}</div>`
       : `<div class="bloque">Elija una actividad y aquí aparecerá de qué se trata, qué evidencia suele servir y qué cuidar.</div>`;
@@ -553,18 +565,21 @@
     const editar = !!previa;
     const idxAct = q.a != null && CFG.ACTIVIDADES[+q.a] ? +q.a : -1;
     const actual = editar ? previa.actividad : (idxAct >= 0 ? CFG.ACTIVIDADES[idxAct].nombre : '');
-    F = { cid: uuid(), nuevos: [], existentes: editar ? previa.archivos.slice() : [], id: editar ? previa.id : null };
-    const opciones = `<option value="">Elija la actividad</option>` + CFG.ACTIVIDADES.map(a => `<option value="${esc(a.nombre)}"${a.nombre === actual ? ' selected' : ''}>${esc(a.nombre)}</option>`).join('');
+    // La actividad viene fija del botón que se tocó en el inicio: aquí no se cambia, para que nadie registre en la equivocada.
+    if (!actual) { location.hash = '#inicio'; return; }
+    const infoAct = CFG.ACTIVIDADES.find(a => a.nombre === actual);
+    F = { cid: uuid(), nuevos: [], existentes: editar ? previa.archivos.slice() : [], id: editar ? previa.id : null, sucio: false, guardando: false };
     pintar(editar ? 'Corregir registro' : 'Registrar actividad', `
-      <p class="migas"><a href="#inicio">Inicio</a> / ${editar ? 'Corregir un registro' : 'Registrar una actividad'}</p>
-      <div class="cab densa"><div><h1>${editar ? 'Corregir un registro' : 'Registrar una actividad'}</h1>
-        <p>${editar ? 'Cambie lo que necesite. Lo anterior queda guardado en el historial.' : 'Cuente qué se hizo y adjunte las fotos.'}</p></div></div>
+      <p class="migas"><a href="#inicio" id="m-inicio">Inicio</a> / ${editar ? 'Corregir un registro' : 'Registrar una actividad'}</p>
+      <div class="cab densa"><div><h1>${editar ? 'Corregir' : 'Registrar'}: ${esc(actual)}</h1>
+        <p>${editar ? 'Cambie lo que necesite. Lo anterior queda guardado en el historial.' : 'Un registro por cada vez que se hizo esta actividad. Llene los campos de arriba abajo y guarde al final.'}</p></div></div>
       <div class="rejilla">
       <form id="f-reg" class="panel c8" novalidate>
-        <div class="campo" id="c-act"><label for="act">Actividad</label><select id="act" aria-describedby="act-ay">${opciones}</select>
-          <div class="ayuda" id="act-ay" data-orig=""></div></div>
+        <input type="hidden" id="act" value="${esc(actual)}">
+        <div class="act-fija"><span class="peq">Actividad</span><b>${esc(actual)}</b>
+          ${editar ? '' : '<a href="#inicio" class="peq" id="m-otra">¿Era otra actividad? Vuelva al inicio y toque «Registrar» en la que corresponde.</a>'}</div>
         <div class="fila2">
-          <div class="campo" id="c-fecha"><label for="fecha">Fecha en que se realizó</label><input id="fecha" type="date" max="${hoy()}" value="${editar ? esc(previa.fecha_actividad) : ''}" aria-describedby="fecha-ay"><div class="ayuda" id="fecha-ay" data-orig=""></div></div>
+          <div class="campo" id="c-fecha"><label for="fecha">Fecha en que se realizó</label><input id="fecha" type="date" min="2026-01-01" max="${hoy()}" value="${editar ? esc(previa.fecha_actividad) : ''}" aria-describedby="fecha-ay"><div class="ayuda" id="fecha-ay" data-orig=""></div></div>
           <div class="campo" id="c-part"><label for="part">Número de participantes</label><input id="part" type="text" inputmode="numeric" autocomplete="off" value="${editar ? previa.participantes : ''}" aria-describedby="part-ay"><div class="ayuda" id="part-ay" data-orig="Personas que participaron, sin nombres.">Personas que participaron, sin nombres.</div></div>
         </div>
         <div class="campo" id="c-arch"><span class="lbl" id="arch-l">Fotografías o PDF</span>
@@ -581,13 +596,15 @@
         <div id="envio-error" class="ayuda" role="alert"></div>
         <button class="btn pri grande" type="submit" id="b-enviar">${editar ? 'Guardar la corrección' : 'Guardar el registro'}</button>
       </form>
-      <aside class="panel c4 lado" aria-live="polite"><h2>Sobre esta actividad</h2><div id="ayuda-act">${bloqueAyuda(CFG.ACTIVIDADES.find(a => a.nombre === actual))}</div></aside></div>`);
+      <aside class="panel c4 lado guia"><h2>Qué registrar en esta actividad</h2><div id="ayuda-act">${bloqueAyuda(infoAct)}</div></aside></div>`);
     MENSAJE = '';
     if (editar) $('conf').checked = true;
-    const desc = $('desc'), cont = $('desc-n'), sel = $('act'), zona = $('zona');
+    const desc = $('desc'), cont = $('desc-n'), zona = $('zona');
     const actualizarN = () => { cont.textContent = desc.value.length + ' / 800'; };
     desc.addEventListener('input', actualizarN); actualizarN();
-    sel.addEventListener('change', () => { $('ayuda-act').innerHTML = bloqueAyuda(CFG.ACTIVIDADES.find(x => x.nombre === sel.value)); });
+    // Lo escrito no se pierde por un clic: avisa antes de salir del formulario sin guardar.
+    $('f-reg').addEventListener('input', () => { F.sucio = true; });
+    ['m-inicio', 'm-otra'].forEach(k => { const a = $(k); if (a) a.addEventListener('click', ev => { if (!F.sucio && !F.nuevos.length) return; ev.preventDefault(); dialogoSalir(); }); });
     $('b-arch').addEventListener('click', () => $('i-arch').click());
     $('i-arch').addEventListener('change', async ev => { await agregarArchivos([...ev.target.files]); ev.target.value = ''; });
     ['dragenter', 'dragover'].forEach(t => zona.addEventListener(t, ev => { ev.preventDefault(); zona.classList.add('encima'); }));
@@ -668,9 +685,9 @@
       claves.forEach(k => { const c = $(k === 'conf' ? 'c-conf' : 'c-' + k), ay = $(k + '-ay'); c.classList.add('mal'); ay.textContent = errs[k]; ay.classList.add('mal'); });
       const primero = $(claves[0] === 'arch' ? 'b-arch' : claves[0]); if (primero) primero.focus(); return;
     }
-    const original = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando…';
+    const original = btn.textContent; btn.disabled = true; btn.textContent = 'Guardando…'; F.guardando = true;
     const r = F.id ? await api('editarEvidencia', Object.assign({ id: F.id }, d)) : await api('crearEvidencia', Object.assign({ cid: F.cid }, d));
-    if (!r.ok) { btn.disabled = false; btn.textContent = original; err.textContent = r.error; err.classList.add('mal'); return; }
+    if (!r.ok) { F.guardando = false; btn.disabled = false; btn.textContent = original; err.textContent = r.error; err.classList.add('mal'); return; }
     const id = r.evidencia.id, fallos = [];
     for (let i = 0; i < F.nuevos.length; i++) {
       btn.textContent = `Subiendo archivo ${i + 1} de ${F.nuevos.length}…`;
@@ -682,6 +699,7 @@
     MENSAJE = fallos.length
       ? `El registro quedó guardado, pero ${fallos.length === 1 ? 'un archivo no se pudo subir' : fallos.length + ' archivos no se pudieron subir'} (${fallos.join('; ')}). Agréguelos con «Agregar archivos».`
       : (F.id ? 'Corrección guardada.' : 'Registro guardado.');
+    F.guardando = false; F.sucio = false; F.nuevos = [];
     location.hash = '#evidencia/' + id;
   }
 
