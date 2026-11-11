@@ -2,7 +2,7 @@
    por cada foto), guardado en localStorage. Solo se usa si CONFIG.BACKEND_URL
    está vacío. Instituciones, personas, registros y fotos son de ejemplo: las fotos son escenas dibujadas en el navegador. */
 window.DEMO = (function () {
-  const LLAVE = 'ev25n_demo2';
+  const LLAVE = 'ev25n_demo3';
   const USUARIOS = [{ correo: 'coordinacion@ejemplo.gov.co', nombre: 'USUARIA DE EJEMPLO', cargo: 'Profesional de convivencia escolar (ejemplo)' }];
   const nombres = () => window.CONFIG.ACTIVIDADES.map(a => a.nombre);
   const sinTilde = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -18,7 +18,13 @@ window.DEMO = (function () {
         const sedes = 1 + ((Number(m.code) + i * 7) % 9);
         _inst.push({ dane_ie: '2' + m.code + '900' + String(i).padStart(3, '0'),
           institucion: `INSTITUCIÓN EDUCATIVA DE EJEMPLO ${sinTilde(m.name).toUpperCase()} ${i}`,
-          municipio: sinTilde(m.name).toUpperCase(), num_sedes: sedes, matricula: 90 * sedes + ((Number(m.code) * i) % 260) });
+          municipio: sinTilde(m.name).toUpperCase(), num_sedes: sedes, matricula: 90 * sedes + ((Number(m.code) * i) % 260), sector: 'OFICIAL' });
+      }
+      // No oficiales de ejemplo en algunos municipios; la mitad sin dato de matrícula, como en la lista real.
+      const nNo = Number(m.code) % 3 === 0 ? 2 : Number(m.code) % 3 === 1 ? 1 : 0;
+      for (let i = 1; i <= nNo; i++) {
+        _inst.push({ dane_ie: '3' + m.code + '000' + String(800 + i), institucion: `COLEGIO PRIVADO DE EJEMPLO ${sinTilde(m.name).toUpperCase()} ${i}`,
+          municipio: sinTilde(m.name).toUpperCase(), num_sedes: 1, matricula: i % 2 ? 60 + (Number(m.code) % 140) : null, sector: 'NO OFICIAL' });
       }
     });
     return _inst;

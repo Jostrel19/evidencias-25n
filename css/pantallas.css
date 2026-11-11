@@ -301,3 +301,16 @@ dialog.fin-dlg{max-width:min(560px,calc(100% - 32px))}
 }
 @media (max-width:720px){ .marca-sup .logo-sup{height:32px} .marca-sup span{font-size:var(--t-12)} }
 @media (max-width:360px){ .yo{display:none!important} }   /* en 320 px el nombre de la campaña y «Salir» no caben con las iniciales */
+
+/* ── 2026-11-10: selector oficiales / no oficiales y etiqueta «No oficial» ── */
+.seg.sector{flex-wrap:wrap}
+.seg.sector button{min-height:44px;padding:6px 14px}
+.seg.sector .n{font-weight:400;color:var(--t3)}
+.seg.sector button[aria-pressed="true"] .n{color:var(--v8)}
+.chip-sector{margin-left:6px;vertical-align:middle}
+.mt-lista .chip-sector{margin:2px 0 0;display:inline-flex;width:max-content}
+@media (max-width:720px){ .cab .der .seg.sector{width:100%} .seg.sector button{flex:1 1 auto;padding:6px 10px} }
+/* Botones segmentados (Fotos/Tabla, Por municipio/Lista, sector) con blanco táctil de 44 px en todos los anchos */
+.seg button{min-height:44px}
+/* El visor ocupa la ventana sin pasar por debajo de la barra de desplazamiento del escritorio (100vw la incluye) */
+dialog.visor{width:100%}

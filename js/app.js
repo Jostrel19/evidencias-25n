@@ -90,6 +90,7 @@
   const vacio = (t, d, error) => `<div class="vacio${error ? ' error' : ''}"><b>${esc(t)}</b>${d ? `<span>${esc(d)}</span>` : ''}</div>`;
   const cargando = () => { main.innerHTML = `<section class="panel"><div class="vacio" role="status"><b>Cargando…</b></div></section>`; };
   function pintar(titulo, html) {
+    detenerCarrusel();   // al redibujar sin pasar por el router (Actualizar, cambiar de sector) el carrusel viejo no debe seguir
     document.title = titulo + ' · Evidencias 25N';
     main.innerHTML = html;
     window.scrollTo(0, 0); main.focus({ preventScroll: true });
@@ -366,7 +367,7 @@
             <input id="dane" class="dane-campo" type="text" inputmode="numeric" autocomplete="off" placeholder="000 000 000 000" aria-describedby="dane-ay" translate="no">
             <div class="ayuda" id="dane-ay" data-orig="Escríbalo con o sin espacios.">Escríbalo con o sin espacios.</div></div>
           <button class="btn pri grande" type="submit">Entrar</button></form>`,
-      [['Entre con el código', 'El código DANE de su institución educativa, de 12 dígitos.'], ['Registre cada actividad', 'Qué se hizo, cuántas personas participaron y las fotografías o el video.'], ['Finalice el reporte', 'Cuando ya no tenga nada más que registrar. Recibe una constancia en su correo.']])}`);
+      [['Entre con el código', 'El código DANE de su institución educativa, de 12 dígitos.'], ['Registre cada actividad', 'Qué se hizo, cuántas personas participaron y la evidencia: fotos o un PDF.'], ['Finalice el reporte', 'Cuando ya no tenga nada más que registrar. Recibe una constancia en su correo.']])}`);
     enlazarAnimacion();
     if (MENSAJE) { aviso(MENSAJE); MENSAJE = ''; }
     const inp = $('dane');
@@ -587,11 +588,11 @@
             <b>Arrastre aquí las fotos o el PDF</b><span>o</span><button type="button" class="btn" id="b-arch" aria-describedby="arch-ay">Elija los archivos</button>
             <input type="file" id="i-arch" accept="image/jpeg,image/png,image/webp,image/heic,application/pdf" multiple hidden></div>
           <ul class="arch-t" id="l-arch" aria-labelledby="arch-l"></ul>
-          <div class="ayuda" id="arch-ay" data-orig="Hasta ${MAX_ARCHIVOS} archivos. Las fotos se reducen solas antes de enviarse.">Hasta ${MAX_ARCHIVOS} archivos. Las fotos se reducen solas antes de enviarse.</div></div>
+          <div class="ayuda" id="arch-ay" data-orig="Fotos, un PDF o ambos: con uno de los dos basta. Hasta ${MAX_ARCHIVOS} archivos; las fotos se reducen solas antes de enviarse.">Fotos, un PDF o ambos: con uno de los dos basta. Hasta ${MAX_ARCHIVOS} archivos; las fotos se reducen solas antes de enviarse.</div></div>
         <div class="campo" id="c-desc"><label for="desc">¿Qué se hizo?</label><textarea id="desc" maxlength="800" aria-describedby="desc-ay">${editar ? esc(previa.descripcion) : ''}</textarea>
           <div class="ayuda" id="desc-ay" data-orig="Dos o tres frases. No escriba nombres ni relatos de casos reales.">Dos o tres frases. No escriba nombres ni relatos de casos reales.</div><div class="contar" id="desc-n" aria-hidden="true">0 / 800</div></div>
-        <div class="campo" id="c-enlace"><label for="enlace">Enlace al video o la publicación <span style="font-weight:400">(opcional)</span></label><input id="enlace" type="url" inputmode="url" placeholder="https://" value="${editar ? esc(previa.enlace) : ''}" aria-describedby="enlace-ay"><div class="ayuda" id="enlace-ay" data-orig=""></div></div>
-        <div class="campo"><div class="confirma" id="c-conf"><input type="checkbox" id="conf" aria-describedby="conf-ay"><label for="conf">Confirmo que en las fotografías y videos <b>no aparecen niñas, niños ni adolescentes identificables</b>, o que se cuenta con la autorización informada de sus familias para su uso.</label></div>
+        <div class="campo" id="c-enlace"><label for="enlace">Enlace a un video o una publicación <span style="font-weight:400">(opcional)</span></label><input id="enlace" type="url" inputmode="url" placeholder="https://" value="${editar ? esc(previa.enlace) : ''}" aria-describedby="enlace-ay"><div class="ayuda" id="enlace-ay" data-orig=""></div></div>
+        <div class="campo"><div class="confirma" id="c-conf"><input type="checkbox" id="conf" aria-describedby="conf-ay"><label for="conf">Confirmo que en lo que adjunto o enlazo (fotos, PDF o video) <b>no aparecen niñas, niños ni adolescentes identificables</b>, o que se cuenta con la autorización informada de sus familias para su uso.</label></div>
           <div class="ayuda" id="conf-ay" data-orig=""></div></div>
         <div id="envio-error" class="ayuda" role="alert"></div>
         <button class="btn pri grande" type="submit" id="b-enviar">${editar ? 'Guardar la corrección' : 'Guardar el registro'}</button>
@@ -670,7 +671,7 @@
     if (!d.fecha_actividad) e.fecha = 'Escriba la fecha en que se realizó.';
     else if (d.fecha_actividad > hoy()) e.fecha = 'La fecha no puede ser posterior a hoy.';
     if (!/^\d{1,4}$/.test(d.participantes) && d.participantes !== '5000') e.part = 'Escriba un número entero, por ejemplo 35.';
-    if (!d.enlace && F.existentes.length + F.nuevos.length === 0) e.arch = 'Agregue al menos una fotografía o PDF, o el enlace al video.';
+    if (!d.enlace && F.existentes.length + F.nuevos.length === 0) e.arch = 'Agregue al menos una foto o un PDF (o, si la evidencia es un video, su enlace).';
     if (d.descripcion.length < 10) e.desc = 'Cuente brevemente qué se hizo (al menos 10 caracteres).';
     if (d.enlace && !/^https?:\/\/\S+$/i.test(d.enlace)) e.enlace = 'El enlace debe empezar por http:// o https://.';
     if (!d.autoriza_imagen) e.conf = 'Marque la casilla para poder guardar.';
@@ -782,9 +783,10 @@
     const r = await api('listarTodo');
     if (!r.ok) throw new Error(r.error);
     if (r.usuario) { S.usuario = r.usuario; guardarSesion(); barra(parsear().partes[0]); }
-    TODO = Object.assign(r, { en: Date.now() });
+    TODO = Object.assign(r, { en: Date.now(), noOficial: new Set(r.instituciones.filter(i => sectorDe(i) === 'no').map(i => i.dane_ie)) });
     return TODO;
   }
+  const matTexto = i => (i.matricula == null || i.matricula === '' ? 'sin dato de matrícula' : `${num(i.matricula)} estudiantes`);
   function calcular(t) {
     const N = t.instituciones.length, ev = t.evidencias;
     const primera = {}; ev.forEach(e => { if (!primera[e.dane_ie] || e.registrado < primera[e.dane_ie]) primera[e.dane_ie] = e.registrado; });
@@ -802,12 +804,44 @@
     return { N, ev, con, cierres, estado, cuenta, reportaron, munis: Object.values(M),
       nuevas7: t.instituciones.filter(i => primera[i.dane_ie] && primera[i.dane_ie].slice(0, 10) > hace7).length,
       mat: t.instituciones.reduce((s, i) => s + (i.matricula || 0), 0), matCon: rep.reduce((s, i) => s + (i.matricula || 0), 0),
+      sinMat: t.instituciones.filter(i => i.matricula == null || i.matricula === '').length,
       participantes: ev.reduce((s, e) => s + e.participantes, 0) };
   }
-  const universo = t => `${num(t.instituciones.length)} instituciones educativas oficiales de Caldas con sedes en la base maestra (sin Manizales, que es secretaría certificada), contadas por código DANE de institución`;
-  const cabSecretaria = (titulo, bajada, extra, densa) => `<div class="cab${densa ? ' densa' : ''}"><div><h1>${titulo}</h1><p>${bajada}</p></div>
-    <div class="der">${extra || ''}<button type="button" class="btn" id="b-actualizar">Actualizar</button></div></div>`;
-  function enlazarActualizar(fn) { const b = $('b-actualizar'); if (b) b.addEventListener('click', async () => { b.disabled = true; await traerTodo(true); fn(); aviso('Datos actualizados.'); }); }
+  /* ── Sector (2026-11-10): oficiales y no oficiales. La Secretaría elige sobre cuáles cuenta; se recuerda en la sesión ── */
+  const sectorDe = i => (String((i && i.sector) || 'OFICIAL').toUpperCase() === 'NO OFICIAL' ? 'no' : 'of');
+  let SECTOR = (() => { try { const v = sessionStorage.getItem('ev25n_sector'); return v === 'of' || v === 'no' ? v : ''; } catch (e) { return ''; } })();
+  const hayNoOficiales = t => t.instituciones.some(i => sectorDe(i) === 'no');
+  // Deja solo las instituciones del sector elegido, con sus registros y cierres: todas las cifras salen de ahí.
+  function porSector(t) {
+    if (!SECTOR || !hayNoOficiales(t)) return t;
+    const ies = t.instituciones.filter(i => sectorDe(i) === SECTOR), ok = new Set(ies.map(i => i.dane_ie));
+    return Object.assign({}, t, { instituciones: ies, evidencias: t.evidencias.filter(e => ok.has(e.dane_ie)), cierres: (t.cierres || []).filter(c => ok.has(c.dane_ie)) });
+  }
+  const esNoOficial = d => !!(TODO && TODO.noOficial && TODO.noOficial.has(d));
+  const chipSector = d => (esNoOficial(d) ? ' <span class="chip e-neutro chip-sector">No oficial</span>' : '');
+  function selectorSector() {
+    if (!TODO || !hayNoOficiales(TODO)) return '';
+    const l = TODO.instituciones, n = { '': l.length, of: l.filter(i => sectorDe(i) === 'of').length, no: l.filter(i => sectorDe(i) === 'no').length };
+    return `<div class="seg sector" role="group" aria-label="Contar sobre">${[['', 'Todas'], ['of', 'Oficiales'], ['no', 'No oficiales']]
+      .map(([v, et]) => `<button type="button" data-sector="${v}" aria-pressed="${v === SECTOR}">${et} <span class="n">${num(n[v])}</span></button>`).join('')}</div>`;
+  }
+  const palabraSector = () => (SECTOR === 'of' ? 'oficiales' : SECTOR === 'no' ? 'no oficiales' : '');
+  const universo = t => {
+    const of = t.instituciones.filter(i => sectorDe(i) === 'of').length, no = t.instituciones.length - of;
+    const tOf = 'oficiales con sedes en la base maestra, contadas por código DANE de institución';
+    const tNo = 'no oficiales del directorio de establecimientos de la Secretaría, contadas por su código (la matrícula sale de la base maestra; las que no están allí van sin dato)';
+    const base = of && no ? `${num(of)} instituciones educativas ${tOf}, y ${num(no)} ${tNo}` : of ? `${num(of)} instituciones educativas ${tOf}` : `${num(no)} instituciones educativas ${tNo}`;
+    return `${base}. Todas de Caldas, sin Manizales, que es secretaría certificada`;
+  };
+  const cabSecretaria = (titulo, bajada, extra, densa, sinSector) => `<div class="cab${densa ? ' densa' : ''}"><div><h1>${titulo}</h1><p>${bajada}</p></div>
+    <div class="der">${sinSector ? '' : selectorSector()}${extra || ''}<button type="button" class="btn" id="b-actualizar">Actualizar</button></div></div>`;
+  function enlazarActualizar(fn) {
+    const b = $('b-actualizar'); if (b) b.addEventListener('click', async () => { b.disabled = true; await traerTodo(true); fn(); aviso('Datos actualizados.'); });
+    main.querySelectorAll('[data-sector]').forEach(x => x.addEventListener('click', () => {
+      SECTOR = x.dataset.sector; try { sessionStorage.setItem('ev25n_sector', SECTOR); } catch (e) { /* nada */ }
+      fn(); aviso(SECTOR ? `Mostrando solo las ${palabraSector()}.` : 'Mostrando todas las instituciones.');
+    }));
+  }
 
   /* Registros por día, desde dos semanas atrás hasta el cierre de los 16 días de activismo */
   function graficoDias(ev) {
@@ -836,17 +870,11 @@
     return { titulo, svg: `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Registros por día. ${esc(titulo)}">${s}</svg>`,
       tabla: `<details class="datos-graf"><summary>Ver los datos por día</summary><div class="tabla-scroll"><table class="tabla densa"><thead><tr><th>Día</th><th class="d">Registros</th></tr></thead><tbody>${filas}</tbody></table></div></details>` };
   }
-  function cifraPlazo() {
-    const h = hoy();
-    if (h < CFG.DIA) { const n = difDias(h, CFG.DIA); return { b: `${n} ${plural(n, 'día', 'días')}`, corto: 'para el 25 de noviembre' }; }
-    if (h <= CFG.FIN) { const n = difDias(CFG.DIA, h) + 1; return { b: `Día ${n} de 16`, corto: `de activismo, hasta el ${diaMes(CFG.FIN)}` }; }
-    return { b: 'Campaña terminada', corto: `el ${diaMes(CFG.FIN)}` };
-  }
 
   /* ── Pantalla 1: Resumen. Arriba, sin desplazarse: las fotos en movimiento y las cifras; abajo, actividades, días y municipios ── */
   async function vistaResumen() {
     cargando();
-    const t = await traerTodo(), c = calcular(t), ev = c.ev, plazo = cifraPlazo(), g = graficoDias(ev), fotos = imagenes(ev);
+    const T = await traerTodo(), t = porSector(T), c = calcular(t), ev = c.ev, g = graficoDias(ev), fotos = imagenes(ev);
     const porAct = CFG.ACTIVIDADES.map((a, i) => { const l = ev.filter(e => e.actividad === a.nombre); return { i, nombre: a.nombre, n: l.length, ies: new Set(l.map(e => e.dane_ie)).size, part: l.reduce((s, e) => s + e.participantes, 0), fotos: imagenes(l).slice(0, 3) }; });
     const ordenAct = porAct.slice(0, -1).sort((a, b) => b.ies - a.ies || b.n - a.n).concat(porAct.slice(-1));
     const top = ordenAct[0];
@@ -854,7 +882,7 @@
     const peores = munis.filter(m => m.faltan).slice(0, 8);
     const nIEfotos = new Set(fotos.map(x => x.e.dane_ie)).size;
     pintar('Resumen', `
-      ${cabSecretaria('Resumen de la campaña', `Datos consultados a las ${horaDe(new Date(t.en))}`, `<span class="plazo-chip"><b>${plazo.b}</b> ${plazo.corto}</span>`, true)}
+      ${cabSecretaria('Resumen de la campaña', `Datos consultados a las ${horaDe(new Date(T.en))}${SECTOR ? `, solo instituciones ${palabraSector()}` : ''}`, '', true)}
       ${demoNota()}
       <div class="escena-fila">
         <section class="panel escenario" aria-labelledby="esc-h"><h2 id="esc-h" class="oculto">Fotografías de las instituciones</h2>
@@ -863,7 +891,8 @@
           <div><span class="et">Instituciones que ya reportaron</span><b class="n">${num(c.reportaron)} <small>de ${num(c.N)}</small></b>
             ${barra3(c.cuenta, c.N, true)}
             <ul class="leyenda3"><li><i style="background:var(--ok-pt)"></i><b>${num(c.cuenta.fin)}</b> finalizaron</li><li><i style="background:var(--bor-pt)"></i><b>${num(c.cuenta.rep)}</b> sin finalizar</li><li><i style="background:var(--gris-pt)"></i><b>${num(c.cuenta.sin)}</b> sin reportar</li></ul>
-            <span class="de">${(p => (/^menos/.test(p) ? 'Menos' + p.slice(5) : 'El ' + p))(pctDe(c.reportaron, c.N))} de las oficiales, con ${num(c.matCon)} de los ${num(c.mat)} estudiantes matriculados (${pctDe(c.matCon, c.mat)}).</span>
+            <span class="de">${(p => (/^menos/.test(p) ? 'Menos' + p.slice(5) : 'El ' + p))(pctDe(c.reportaron, c.N))} de las ${SECTOR ? palabraSector() : 'instituciones'}, con ${num(c.matCon)} de los ${num(c.mat)} estudiantes matriculados (${pctDe(c.matCon, c.mat)})${c.sinMat ? `; ${num(c.sinMat)} ${plural(c.sinMat, 'institución no tiene', 'instituciones no tienen')} dato de matrícula` : ''}.</span>
+            ${!SECTOR && hayNoOficiales(T) ? (() => { const k = s => { const l = t.instituciones.filter(i => sectorDe(i) === s); return `${num(l.filter(i => c.estado(i.dane_ie) !== 'sin').length)} de ${num(l.length)}`; }; return `<span class="de">Reportaron ${k('of')} oficiales y ${k('no')} no oficiales.</span>`; })() : ''}
             <span class="tend${c.nuevas7 ? '' : ' cero'}">${c.nuevas7 ? `${num(c.nuevas7)} ${plural(c.nuevas7, 'empezó', 'empezaron')} en los últimos 7 días` : 'Ninguna empezó en los últimos 7 días'}</span>
             <a href="#pendientes">Ver las ${num(c.cuenta.sin + c.cuenta.rep)} que faltan</a></div>
           <div><span class="et">Participantes en las actividades</span><b class="n">${num(c.participantes)}</b>
@@ -897,10 +926,10 @@
     return filas.map((e, k) => {
       const f = e.archivos.filter(esImg), lugar = `${esc(nomMun(codMun(e), e.municipio))}, ${esc(diaMes(e.fecha_actividad))}`;
       if (!f.length) return `<a class="tesela sin-foto" href="#evidencia/${esc(e.id)}"><span class="ts-ico">${e.enlace ? 'Video o enlace' : 'Documento PDF'}</span>
-        <span class="ts-pie"><span class="chip e-neutro">${esc(e.actividad)}</span><b>${esc(e.institucion)}</b><small>${lugar}</small></span></a>`;
+        <span class="ts-pie"><span class="chip e-neutro">${esc(e.actividad)}</span><b>${esc(e.institucion)}</b><small>${lugar}${esNoOficial(e.dane_ie) ? ', no oficial' : ''}</small></span></a>`;
       return `<button type="button" class="tesela${grande && k === 0 ? ' grande' : ''}" data-e="${esc(e.id)}" aria-label="Ver ${f.length} ${plural(f.length, 'foto', 'fotos')}: ${esc(e.actividad)}, ${esc(e.institucion)}">
         <span class="img" data-mini="${esc(f[0].id)}"></span>${f.length > 1 ? `<span class="ts-n">${f.length} fotos</span>` : ''}
-        <span class="ts-pie"><span class="chip e-neutro">${esc(e.actividad)}</span><b>${esc(e.institucion)}</b><small>${lugar}, ${num(e.participantes)} participantes</small></span></button>`;
+        <span class="ts-pie"><span class="chip e-neutro">${esc(e.actividad)}</span><b>${esc(e.institucion)}</b><small>${lugar}${esNoOficial(e.dane_ie) ? ', no oficial' : ''}, ${num(e.participantes)} participantes</small></span></button>`;
     }).join('');
   }
   function enlazarTeselas(raiz, filas) {
@@ -910,7 +939,7 @@
   }
   async function vistaEvidencias(q) {
     cargando();
-    const t = await traerTodo(), ev = t.evidencias, c = calcular(t);
+    const t = porSector(await traerTodo()), ev = t.evidencias, c = calcular(t);
     const ver = q.ver === 'tabla' ? 'tabla' : 'galeria', fMun = q.mun || '', fAct = q.act || '', fTxt = q.q || '';
     const municipios = [...new Set(t.instituciones.map(i => codMun(i)))].sort((a, b) => nomMun(a).localeCompare(nomMun(b), 'es'));
     const base = ev.filter(e => (!fMun || codMun(e) === fMun) && (!fTxt || norm(e.institucion).includes(norm(fTxt))));
@@ -922,7 +951,7 @@
       : ver === 'galeria'
         ? `<div class="muro" id="muro">${teselas(visibles, true)}</div>${filas.length > visibles.length ? `<p style="margin-top:16px;text-align:center"><button type="button" class="btn" id="b-mas">Mostrar ${Math.min(POR_PAGINA, filas.length - visibles.length)} más</button></p>` : ''}`
         : `<section class="panel"><div class="tabla-scroll alto"><table class="tabla densa"><thead><tr><th>Registrada</th><th>Institución</th><th>Estado</th><th>Actividad</th><th class="d">Participantes</th><th class="d">Fotos</th><th><span class="oculto">Acción</span></th></tr></thead><tbody>${filas.map(e => `<tr>
-          <td>${esc(fechaHora(e.registrado))}</td><td><a href="#institucion/${esc(e.dane_ie)}">${esc(e.institucion)}</a><span class="sec">${esc(nomMun(codMun(e), e.municipio))}</span></td><td>${chipEstado(c.estado(e.dane_ie))}</td><td>${esc(e.actividad)}</td>
+          <td>${esc(fechaHora(e.registrado))}</td><td><a href="#institucion/${esc(e.dane_ie)}">${esc(e.institucion)}</a><span class="sec">${esc(nomMun(codMun(e), e.municipio))}${esNoOficial(e.dane_ie) ? ', no oficial' : ''}</span></td><td>${chipEstado(c.estado(e.dane_ie))}</td><td>${esc(e.actividad)}</td>
           <td class="d">${num(e.participantes)}</td><td class="d">${e.archivos.filter(esImg).length}</td><td><a class="btn sutil" href="#evidencia/${esc(e.id)}">Ver<span class="oculto"> ${esc(e.institucion)}, ${esc(e.actividad)}</span></a></td></tr>`).join('')}</tbody></table></div></section>`;
     pintar('Evidencias', `
       ${cabSecretaria('Evidencias registradas', `${num(ev.length)} ${plural(ev.length, 'registro', 'registros')} con ${num(imagenes(ev).length)} fotografías, de ${num(c.con.size)} de las ${num(t.instituciones.length)} instituciones del universo. Datos consultados a las ${horaDe(new Date(t.en))}`,
@@ -949,7 +978,7 @@
   /* ── Pantalla 3: Las que faltan. Por municipio (tarjetas con anillo) o en lista; con recordatorio para copiar ── */
   async function vistaPendientes(q) {
     cargando();
-    const t = await traerTodo(), c = calcular(t), fMun = q.mun || '', fEst = q.est === 'sin' || q.est === 'rep' ? q.est : '', ver = q.ver === 'lista' ? 'lista' : 'municipios';
+    const t = porSector(await traerTodo()), c = calcular(t), fMun = q.mun || '', fEst = q.est === 'sin' || q.est === 'rep' ? q.est : '', ver = q.ver === 'lista' ? 'lista' : 'municipios';
     const pend = i => { const k = c.estado(i.dane_ie); return k !== 'fin' && (!fEst || k === fEst); };
     const href = o => { const p = Object.assign({ ver, mun: fMun, est: fEst }, o); return '#pendientes?' + Object.keys(p).filter(k => p[k] && !(k === 'ver' && p[k] === 'municipios')).map(k => k + '=' + encodeURIComponent(p[k])).join('&'); };
     const munis = c.munis.filter(m => !fMun || m.cod === fMun).map(m => Object.assign({}, m, { pend: m.ies.filter(pend).sort((a, b) => a.institucion.localeCompare(b.institucion, 'es')) }))
@@ -959,7 +988,7 @@
     const municipios = [...c.munis].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     const tarjeta = m => `<article class="mun-t" aria-labelledby="mt-${m.cod}">
         <div class="mt-cab"><div class="anillo mini" data-anillo="${m.cod}"></div><div><h3 id="mt-${m.cod}">${esc(m.nombre)}</h3><p>${m.pend.length ? `${m.pend.length} de ${m.n} ${plural(m.n, 'institución', 'instituciones')} ${fEst === 'sin' ? 'sin reportar' : fEst === 'rep' ? 'sin finalizar' : 'pendientes'}` : `Las ${m.n} finalizaron`}</p></div></div>
-        ${m.pend.length ? `<ul class="mt-lista">${m.pend.map(i => `<li>${chipEstado(c.estado(i.dane_ie))}<span><b>${esc(i.institucion)}</b><small translate="no">${dane(i.dane_ie)}${c.estado(i.dane_ie) === 'rep' ? `, ${regs(i.dane_ie)} ${plural(regs(i.dane_ie), 'registro', 'registros')}` : ''}</small></span></li>`).join('')}</ul>
+        ${m.pend.length ? `<ul class="mt-lista">${m.pend.map(i => `<li>${chipEstado(c.estado(i.dane_ie))}<span><b>${esc(i.institucion)}</b>${chipSector(i.dane_ie)}<small translate="no">${dane(i.dane_ie)}${c.estado(i.dane_ie) === 'rep' ? `, ${regs(i.dane_ie)} ${plural(regs(i.dane_ie), 'registro', 'registros')}` : ''}</small></span></li>`).join('')}</ul>
           <button type="button" class="btn mt-copiar" data-copiar="${m.cod}">Copiar recordatorio</button>` : ''}</article>`;
     pintar('Las que faltan', `
       ${cabSecretaria('Instituciones que faltan', `${num(c.cuenta.sin)} no han reportado y ${num(c.cuenta.rep)} tienen registros pero no han finalizado, de las ${num(c.N)} del universo. Datos consultados a las ${horaDe(new Date(t.en))}`,
@@ -974,7 +1003,7 @@
           ${completos.length ? `<p class="sub" style="margin-top:16px">${completos.length === 1 ? 'Un municipio' : `${completos.length} municipios`} sin pendientes${fEst ? ' en este estado' : ''}: ${esc(lista(completos.map(m => m.nombre)))}.</p>` : ''}`
         : `<section class="panel"><div class="tabla-scroll"><table class="tabla densa"><thead><tr><th>Institución</th><th>Código DANE</th><th>Estado</th><th class="d">Registros</th><th class="d">Sedes</th><th class="d">Matrícula</th></tr></thead><tbody>
           ${[...conPend].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')).map(m => `<tr class="grupo"><th colspan="6" scope="colgroup">${esc(m.nombre)}<small>${m.pend.length} de ${m.n} pendientes</small></th></tr>` +
-            m.pend.map(i => `<tr><td>${c.estado(i.dane_ie) === 'rep' ? `<a href="#institucion/${i.dane_ie}">${esc(i.institucion)}</a>` : esc(i.institucion)}</td><td class="n" translate="no">${dane(i.dane_ie)}</td><td>${chipEstado(c.estado(i.dane_ie))}</td><td class="d">${regs(i.dane_ie)}</td><td class="d">${i.num_sedes}</td><td class="d">${num(i.matricula || 0)}</td></tr>`).join('')).join('')}
+            m.pend.map(i => `<tr><td>${c.estado(i.dane_ie) === 'rep' ? `<a href="#institucion/${i.dane_ie}">${esc(i.institucion)}</a>` : esc(i.institucion)}${chipSector(i.dane_ie)}</td><td class="n" translate="no">${dane(i.dane_ie)}</td><td>${chipEstado(c.estado(i.dane_ie))}</td><td class="d">${regs(i.dane_ie)}</td><td class="d">${i.num_sedes}</td><td class="d">${i.matricula == null || i.matricula === '' ? 'Sin dato' : num(i.matricula)}</td></tr>`).join('')).join('')}
           </tbody></table></div></section>`}`);
     enlazarActualizar(() => vistaPendientes(q));
     main.querySelectorAll('[data-ver]').forEach(b => b.addEventListener('click', () => { location.hash = href({ ver: b.dataset.ver }); }));
@@ -1001,7 +1030,7 @@
       <p class="migas"><a href="#evidencias">Evidencias</a> / ${esc(ie.institucion)}</p>
       <section class="panel heroe-ie sec">
         <div class="anillo chico" id="anillo"></div>
-        <div class="hi-id"><h1>${esc(ie.institucion)}</h1><p>${esc(nomMun(codMun(ie), ie.municipio))}, código <span translate="no">${dane(ie.dane_ie)}</span>, ${ie.num_sedes} ${plural(ie.num_sedes, 'sede', 'sedes')}, ${num(ie.matricula || 0)} estudiantes</p>${chipEstado(k)}</div>
+        <div class="hi-id"><h1>${esc(ie.institucion)}</h1><p>${esc(nomMun(codMun(ie), ie.municipio))}, código <span translate="no">${dane(ie.dane_ie)}</span>, ${ie.num_sedes} ${plural(ie.num_sedes, 'sede', 'sedes')}, ${matTexto(ie)}</p>${chipEstado(k)}${chipSector(ie.dane_ie)}</div>
         <dl class="mini-cifras"><div><dt>Registros</dt><dd class="n">${num(ev.length)}</dd></div><div><dt>Participantes</dt><dd class="n">${num(ev.reduce((s, e) => s + e.participantes, 0))}</dd></div><div><dt>Fotografías</dt><dd class="n">${num(imagenes(ev).length)}</dd></div></dl>
       </section>
       ${cierre ? `<section class="panel fin-banner sec"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="var(--ok-pt)"/><path d="m7 12.5 3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1025,11 +1054,12 @@
     const cel = x => '"' + String(x == null ? '' : x).replace(/"/g, '""') + '"';
     const texto = d => '="' + d + '"';   // Excel no convierte el código DANE a notación científica
     const sin = tipo === 'faltan';
-    const enc = sin ? ['Municipio', 'Institución', 'Código DANE I.E.', 'Estado', 'Registros', 'Sedes', 'Matrícula']
-      : ['Registrada', 'Municipio', 'Institución', 'Código DANE I.E.', 'Estado de la institución', 'Actividad', 'Fecha de la actividad', 'Participantes', 'Fotos', 'Enlace', 'Versión', 'Descripción'];
+    const sec = d => cel(esNoOficial(d) ? 'No oficial' : 'Oficial');
+    const enc = sin ? ['Municipio', 'Institución', 'Código DANE I.E.', 'Sector', 'Estado', 'Registros', 'Sedes', 'Matrícula']
+      : ['Registrada', 'Municipio', 'Institución', 'Código DANE I.E.', 'Sector', 'Estado de la institución', 'Actividad', 'Fecha de la actividad', 'Participantes', 'Fotos', 'Enlace', 'Versión', 'Descripción'];
     const cuerpo = filas.map(f => (sin
-      ? [cel(nomMun(codMun(f))), cel(f.institucion), texto(f.dane_ie), cel(ESTADO[c.estado(f.dane_ie)].et), c.ev.filter(e => e.dane_ie === f.dane_ie).length, f.num_sedes, f.matricula || 0]
-      : [cel(f.registrado.replace('T', ' ')), cel(nomMun(codMun(f), f.municipio)), cel(f.institucion), texto(f.dane_ie), cel(ESTADO[c.estado(f.dane_ie)].et), cel(f.actividad), cel(f.fecha_actividad), f.participantes, f.archivos.filter(esImg).length, cel(f.enlace), f.version, cel(f.descripcion)]).join(';'));
+      ? [cel(nomMun(codMun(f))), cel(f.institucion), texto(f.dane_ie), sec(f.dane_ie), cel(ESTADO[c.estado(f.dane_ie)].et), c.ev.filter(e => e.dane_ie === f.dane_ie).length, f.num_sedes, f.matricula == null ? '' : f.matricula]
+      : [cel(f.registrado.replace('T', ' ')), cel(nomMun(codMun(f), f.municipio)), cel(f.institucion), texto(f.dane_ie), sec(f.dane_ie), cel(ESTADO[c.estado(f.dane_ie)].et), cel(f.actividad), cel(f.fecha_actividad), f.participantes, f.archivos.filter(esImg).length, cel(f.enlace), f.version, cel(f.descripcion)]).join(';'));
     const blob = new Blob(['﻿' + enc.map(cel).join(';') + '\r\n' + cuerpo.join('\r\n')], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = `evidencias25N_${tipo}_${hoy()}.csv`; document.body.appendChild(a); a.click(); a.remove();
